@@ -7,7 +7,13 @@ const PORT = process.env.PORT || 3000;
 
 
 const userRouter= require("./routes/user.routes");
+const authRouter= require("./routes/auth.routes");
+const recordRouter=require("./routes/record.routes")
+const {authenticateToken}=require("./middleware/auth.middleware")
+
+app.use("/auth",authRouter);
 app.use("/users",userRouter);
+app.use("/record",recordRouter);
 
 app.get("",(req,res)=>{
     res.send({
