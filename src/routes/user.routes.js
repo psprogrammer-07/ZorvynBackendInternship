@@ -3,10 +3,10 @@ const bcrypt= require("bcrypt");
 const db= require("../config/db");
 const router= express.Router();
 
-const {authenticateToken,authorizeRole}= require("../middleware/auth.middleware")
+const {authenticateToken,authorizeStatus,authorizeRole}= require("../middleware/auth.middleware")
 
 
-router.post("/",async(req,res)=>{
+router.post("/",authenticateToken,authorizeStatus,authorizeRole(['ADMIN']),async(req,res)=>{
 
     try{
     const {name,email,password,role}= req.body;
@@ -80,7 +80,7 @@ router.post("/",async(req,res)=>{
 
 });
 
-router.get("/",authenticateToken,authorizeRole(['ADMIN']),(req,res)=>{
+router.get("/",authenticateToken,authorizeStatus,authorizeRole(['ADMIN']),(req,res)=>{
 
     try{
 
@@ -140,38 +140,73 @@ router.get("/",authenticateToken,authorizeRole(['ADMIN']),(req,res)=>{
     }
 });
 
-router.get("/:id/status",authenticateToken,authorizeRole([ 'ADMIN']),(req,res)=>{
+router.get("/me", authenticateToken, authorizeStatus, authorizeRole(['ADMIN', 'VIEWER', 'ANALYST']), (req, res) => {
+    try {
+       
+        const userId = req.user.id;
 
-    try{
+        
+        const getProfileSql = `SELECT id, name, email, role, status, created_at FROM users WHERE id = ?`;
 
-        const userId= parseInt(req.params.id);
+        
+        db.get(getProfileSql, [userId], (err, row) => {
+            if (err) {
+                return res.status(500).json({ message: "Database error while fetching user profile." });
+            }
 
-        const getStatusSql=`SELECT status from users where id = ?`;
+        
+            if (!row) {
+                return res.status(404).json({ message: "User profile not found." });
+            }
 
+            
+            return res.status(200).json({
+                message: "Profile successfully retrieved",
+                data: row
+            });
+        });
 
-        db.get(getStatusSql,[userId],(err,data)=>{
-            if(err) return res.status(400).json({message:err.message});
-
-
-             if(!data){
-                return res.status(404).json({message:"User not found"})
-             }
-
-             return res.status(200).json({
-                status:data.status
-             })
-        })
-
+    } catch (e) {
+        return res.status(500).json({ message: "An internal server error occurred." });
     }
-    catch(e){
+});
 
-        return res.status(500).json({message:e.message});
+router.get("/:id", authenticateToken, authorizeStatus, authorizeRole(['ADMIN']), (req, res) => {
+    try {
+        const targetUserId = parseInt(req.params.id);
 
+        if (!targetUserId || isNaN(targetUserId)) {
+            return res.status(400).json({ message: "A valid numeric User ID is required." });
+        }
+
+        
+        const getUserSql = `SELECT id, name, email, role, status, created_at FROM users WHERE id = ?`;
+
+      
+        db.get(getUserSql, [targetUserId], (err, row) => {
+            if (err) {
+                console.error("[DB Error]:", err.message);
+                return res.status(500).json({ message: "Database error while fetching user data." });
+            }
+
+            
+            if (!row) {
+                return res.status(404).json({ message: "User not found." });
+            }
+
+            
+            return res.status(200).json({
+                message: "User successfully retrieved",
+                data: row
+            });
+        });
+
+    } catch (e) {
+        return res.status(500).json({ message: "An internal server error occurred." });
     }
+});
 
-})
-
-router.patch("/:id/status",authenticateToken,authorizeRole(['ADMIN']),(req,res)=>{
+router.patch("/:id/status",authenticateToken,authorizeStatus,authorizeRole(['ADMIN']),(req,res)=>{
 
      try{
 

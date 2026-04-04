@@ -1,3 +1,4 @@
+const db= require("../config/db");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET || "my_super_secret_key";
 
@@ -59,4 +60,4 @@ const authorizeStatus= async(req,res,next)=>{
 
 }
 
-module.exports ={authenticateToken,authorizeRole};
+module.exports ={authenticateToken,authorizeStatus,authorizeRole};
