@@ -213,6 +213,10 @@ router.patch("/:id/status",authenticateToken,authorizeStatus,authorizeRole(['ADM
         const userId=parseInt(req.params.id);
         const {status}=req.body;
 
+        if(!status){
+            return res.status(400).json({message:"Status field is required"})
+        }
+
         const updateStatusSql=`UPDATE users set status=? where id= ?`;
 
         const possibleStatus=["ACTIVE","INACTIVE"];
