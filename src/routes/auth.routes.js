@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const db = require("../config/db");
 const router = express.Router();
 
-const JWT_SECRET= process.env.JWT_SECRET ;
+const JWT_SECRET= process.env.JWT_SECRET;
 
 router.post("/login",(req,res)=>{
 

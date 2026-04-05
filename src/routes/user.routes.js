@@ -2,16 +2,14 @@ const express = require("express");
 const bcrypt= require("bcrypt");
 const db= require("../config/db");
 const router= express.Router();
-
 const {authenticateToken,authorizeStatus,authorizeRole}= require("../middleware/auth.middleware")
-
 
 router.post("/",authenticateToken,authorizeStatus,authorizeRole(['ADMIN']),async(req,res)=>{
 
     try{
     const {name,email,password,role}= req.body;
 
-    if(!name || !email,!password){
+    if(!name || !email||!password){
         return res.status(400).json(
             {
                 message:"Name, email, and password are required fields.",
